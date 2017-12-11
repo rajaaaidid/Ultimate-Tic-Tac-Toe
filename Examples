@@ -1,0 +1,225 @@
+package Game;
+
+import Data.InstanceData;
+import Data.Movement;
+import Objects.Instance;
+import Objects.InstanceAnimation;
+import Objects.InstanceCircle;
+import Objects.InstanceImage;
+import Objects.InstanceRectangle;
+import Objects.Tile;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.newdawn.slick.Animation;
+import org.newdawn.slick.Color;
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
+import org.newdawn.slick.SlickException;
+import org.newdawn.slick.geom.Circle;
+import org.newdawn.slick.geom.Rectangle;
+import org.newdawn.slick.geom.Shape;
+import org.newdawn.slick.state.BasicGameState;
+import org.newdawn.slick.state.StateBasedGame;
+
+public class Altaria extends BasicGameState {
+        
+        String Debug;
+    
+        InstanceImage Bucky;
+        Instance Character;
+        InstanceAnimation Anime;
+        Tile Grass;
+        InstanceImage ball;
+        InstanceImage playNow;
+        
+        float X;
+        float Y;
+        float CenterX;
+        float CenterY;
+        float speed = 0.2f;
+        
+        Input input;
+        private boolean OverrideMovement = false;
+    
+	public Altaria(int state) {
+            
+	}
+
+	public void init(GameContainer gc, StateBasedGame sbg)throws SlickException {      
+            //Input Declaration
+            input = gc.getInput();
+            CenterX = gc.getWidth()/2;
+            CenterY = gc.getHeight()/2;
+
+            //Instance Declaration
+            Character = new InstanceCircle(CenterX,CenterY,10,Color.yellow,true,true,false);
+            Bucky = new InstanceImage("res/buckysfront.png",40,40,false,true,true);
+            Image[] walkLeft = {new Image("res/buckysLeft.png"), new Image("res/buckysRight.png")};
+            int[] duration = {300,300};
+            Anime = new InstanceAnimation(walkLeft, duration, false, 300,300,false,true,true);
+            Grass = new Tile("res/jbean.png", 400,200,false,true,true);
+            ball = new InstanceImage("res/8Ball.png",500,100,true,true,true);
+            playNow = new InstanceImage("res/playNow.png",40,300,false,true,true);
+            
+        }
+
+	public void render(GameContainer gc, StateBasedGame sbg, Graphics g)throws SlickException {
+            //Drawing Instance
+            Bucky.drawInstance();
+            Anime.drawInstance();
+            Grass.drawInstance();
+            ball.drawInstance();
+            playNow.drawInstance();
+            Character.fillInstance();
+        }
+
+	public void update(GameContainer gc, StateBasedGame sbg, int delta)throws SlickException {
+            //Image Update
+            Anime.update(delta);
+            
+            //Input
+            KeyBindings(delta);
+
+            //Movement & Collision
+            if(!OverrideMovement){
+            for(Instance i: InstanceData.Instances){
+                if(i.getType()==2){
+                    SetXY(i.getTileHitBox().getNorth(), i.getStartX()+X, i.getStartY()+Y);
+                    SetXY(i.getTileHitBox().getEast(), i.getStartX()+X, i.getStartY()+Y);
+                    SetXY(i.getTileHitBox().getWest(), i.getStartX()+X, i.getStartY()+Y);
+                    SetXY(i.getTileHitBox().getSouth(), i.getStartX()+X, i.getStartY()+Y);
+                }
+                SetXY(i.getHitBox(), i.getStartX()+X, i.getStartY()+Y);
+                if(i.Collidable()){
+                    if(!Collide(Character.getHitBox(), i.getHitBox())){
+                        //SetXY(i, i.getHitBox().getX(), i.getHitBox().getY());
+                        i.setXInstance(i.getHitBox().getX());
+                        i.setYInstance(i.getHitBox().getY());
+                    }else{
+                        if(DistanceReached(i.getHitBox(), i, 0.1f)){
+                            X = i.getX()-i.getStartX();
+                            Y = i.getY()-i.getStartY();
+                        }
+                        SpecialEvent(i.getID(), delta);
+                    }
+                }else{
+                    i.setXInstance(i.getHitBox().getX());
+                    i.setYInstance(i.getHitBox().getY());
+                }
+            }
+            }
+            
+            //System.out.println(X+" "+Y);
+            
+        }
+        
+        public void SpecialEvent(int ID, int delta){
+            ID=ID+5;
+            try{
+                
+            if(ID==Grass.getID()){
+            }
+            
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+
+	public int getID() {
+		return 3;
+	}
+        
+        public void SetXY(Shape shape, float x, float y){
+            shape.setX(x);
+            shape.setY(y);
+        }
+        
+        public void SetXY(InstanceImage shape, float x, float y) throws SlickException{
+            shape.setXInstance(x);
+            shape.setYInstance(y);
+        }
+        
+        public void SetXY(Instance shape, float x, float y) throws SlickException{
+            shape.setXInstance(x);
+            shape.setYInstance(y);
+        }
+        
+        public boolean Collide(Shape shape, Shape shape2){
+            boolean bool;
+            if(shape.intersects(shape2)){
+                bool = true;
+            }else{
+                bool = false;
+            }
+            return bool;
+        }
+        
+        public boolean DistanceReached(Shape shape, Shape shape2, float distance){
+            boolean bool;
+            if(shape.getX()>shape2.getX()+distance || shape.getX()<shape2.getX()-distance || shape.getY()>shape2.getY()+distance || shape.getY()<shape2.getY()-distance){
+                bool = true;
+            }else{
+                bool = false;
+            }
+            return bool;
+        }
+        
+        public boolean DistanceReached(Shape shape, InstanceImage shape2, float distance){
+            boolean bool;
+            if(shape.getX()>shape2.getX()+distance || shape.getX()<shape2.getX()-distance || shape.getY()>shape2.getY()+distance || shape.getY()<shape2.getY()-distance){
+                bool = true;
+            }else{
+                bool = false;
+            }
+            return bool;
+        }
+        
+        public boolean DistanceReached(Shape shape, Instance shape2, float distance){
+            boolean bool;
+            if(shape.getX()>shape2.getX()+distance || shape.getX()<shape2.getX()-distance || shape.getY()>shape2.getY()+distance || shape.getY()<shape2.getY()-distance){
+                bool = true;
+            }else{
+                bool = false;
+            }
+            return bool;
+        }
+        
+        public void KeyBindings(int delta){
+            if(input.isKeyDown(Input.KEY_UP)){
+                Y = Y+delta*speed;
+            }
+            if(input.isKeyDown(Input.KEY_RIGHT)){
+                X = X-delta*speed;
+            }
+            if(input.isKeyDown(Input.KEY_DOWN)){
+                Y = Y-delta*speed;;
+            }
+            if(input.isKeyDown(Input.KEY_LEFT)){
+                X = X+delta*speed;
+            }
+            if(input.isKeyPressed(Input.KEY_W)){
+                speed = speed+0.1f;
+            }
+            if(input.isKeyPressed(Input.KEY_S)){
+                speed = speed-0.1f;
+            }
+            
+        }
+
+}
+//Method for colliding
+/*SetXY(Character.getHitBox(), X, Y);
+            if(PrivateHit(Character)){
+                SetXY(Character, Character.getHitBox().getX(), Character.getHitBox().getY());
+            }else{
+                if(DistanceReached(Character.getHitBox(), Character, 0.1f)){
+                    X = Character.getX();
+                    Y = Character.getY();            
+                }
+            }*/
